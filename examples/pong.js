@@ -10,6 +10,9 @@ objectArray.push()
 var circleSprite = [[0,1,0],[1,1,1],[0,1,0]];
 var cubeSprite = [[1,1], [1,1]];
 var rectangleSprite = [[1,1], [1,1], [1,1]];
+var paddleSprite = [[1,1], [1,1], [1,1], [1,1], [1,1]];
+var black = '../static/images/black.png';
+var white = '../static/images/white.png';
 
 function createFrame(newResolution) {
     resolution = newResolution;
@@ -18,10 +21,10 @@ function createFrame(newResolution) {
         var row = document.createElement('tr');
         for (var y = 0; y < resolution; y++) {
             var pixel = document.createElement('td');
-            pixel.innerHTML = `<img id='${x} ${y}' src='static/images/black.png'>`;
+            pixel.innerHTML = `<img id='${x} ${y}' src='${black}'>`;
             row.appendChild(pixel);
             frameBody.appendChild(row);
-            document.getElementById(`${x} ${y}`).src=`static/images/black.png`;
+            document.getElementById(`${x} ${y}`).src=`${black}`;
         }
     }
     renderFrame();
@@ -30,7 +33,7 @@ function createFrame(newResolution) {
 function renderFrame() {
     for(var x = 0; x < resolution; x++){
         for(var y = 0; y < resolution; y++){
-            document.getElementById(`${x} ${y}`).src=`static/images/black.png`;
+            document.getElementById(`${x} ${y}`).src=`${black}`;
         }
     }
 
@@ -42,7 +45,7 @@ function renderFrame() {
                 y = sprite_y + objectArray[i].objSize.y;
                 if(objectArray[i].objSize.sprite[sprite_x][sprite_y]){
                     if(x < size || y < size || x > 0 || y > 0){
-                        document.getElementById(`${x} ${y}`).src=`static/images/${colour}.png`;
+                        document.getElementById(`${x} ${y}`).src=`../static/images/${colour}.png`;
                     }
                 }
             }
@@ -55,7 +58,7 @@ var xdir = 0;
 var ydir = 1;
 function runGame(){
     renderFrame();
-    if(!cube.move(xdir, ydir)){
+    if(!circle.move(xdir, ydir)){
         xdir = -xdir;
         ydir = -ydir;
     }
@@ -89,6 +92,7 @@ class Object {
         }
         this.x = this.x + dir_x;
         this.y = this.y + dir_y;
+        renderFrame();
         return true;
     }
 
@@ -138,9 +142,15 @@ class Object {
     }
 }
 
-var cube = new Object(3, 0, 'lightgrey', circleSprite);
-objectArray.push(cube);
-var rectangle = new Object(0, 7, 'white', rectangleSprite);
-objectArray.push(rectangle);
+
+function bounce(dirx, diry){
+
+    return dirx, diry
+}
+
+var paddle1 = new Object(2, 0, 'white', paddleSprite);
+objectArray.push(paddle1);
+var paddle2 = new Object(2, 38, 'white', paddleSprite);
+objectArray.push(paddle2);
 var circle = new Object(5, 5, 'white',circleSprite);
 objectArray.push(circle);
