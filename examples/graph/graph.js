@@ -5,6 +5,9 @@ totalObjectArray.push()
 var circleSprite = [[0,1,0],[1,1,1],[0,1,0]];
 var cubeSprite = [];
 var rectangleSprite = [[1,1], [1,1], [1,1]];
+var type = 'multiline';
+colors = ['lightgrey', 'blue', 'green']
+line_colors = ['red', 'white', 'purple']
 
 
 
@@ -65,13 +68,29 @@ function renderFrame() {
             }
         }
     }
-    for(var i = 0; i < (totalObjectArray.length - 1); i++){
-        var x0 = totalObjectArray[i].x + Math.floor(totalObjectArray[i].objSize.sizeX / 2);
-        var y0 = totalObjectArray[i].y + Math.floor(totalObjectArray[i].objSize.sizeY / 2);
-        var x1 = totalObjectArray[i + 1].x + Math.floor(totalObjectArray[i + 1].objSize.sizeX / 2);
-        var y1 = totalObjectArray[i + 1].y + Math.floor(totalObjectArray[i + 1].objSize.sizeY / 2);
-        var line = getLineCoordinates(x0, y0, x1, y1);
-        drawLine(line);
+    if(type == 'line'){
+        for(let i = 0; i < (totalObjectArray.length - 1); i++){
+            var x0 = totalObjectArray[i].x + Math.floor(totalObjectArray[i].objSize.sizeX / 2);
+            var y0 = totalObjectArray[i].y + Math.floor(totalObjectArray[i].objSize.sizeY / 2);
+            var x1 = totalObjectArray[i + 1].x + Math.floor(totalObjectArray[i + 1].objSize.sizeX / 2);
+            var y1 = totalObjectArray[i + 1].y + Math.floor(totalObjectArray[i + 1].objSize.sizeY / 2);
+            var line = getLineCoordinates(x0, y0, x1, y1);
+            drawLine(line);
+        }
+    } else if(type == 'multiline'){
+        console.log(layers);
+        for(let l = 0; l < layers.length; l++){
+            layer = layers[l];
+            console.log(layer);
+            for(let i = 0; i < (layer.objectArray.length - 1); i++){
+                var x0 = layer.objectArray[i].x + Math.floor(layer.objectArray[i].objSize.sizeX / 2);
+                var y0 = layer.objectArray[i].y + Math.floor(layer.objectArray[i].objSize.sizeY / 2);
+                var x1 = layer.objectArray[i + 1].x + Math.floor(layer.objectArray[i + 1].objSize.sizeX / 2);
+                var y1 = layer.objectArray[i + 1].y + Math.floor(layer.objectArray[i + 1].objSize.sizeY / 2);
+                var line = getLineCoordinates(x0, y0, x1, y1);
+                drawLine(line, line_colors[l]);
+            }
+        }
     }
 }
 
@@ -148,13 +167,13 @@ function getLineCoordinates(x0, y0, x1, y1) { // with https://en.wikipedia.org/w
 
 var line = getLineCoordinates(2, 3, 7, 6);
 
-function drawLine(line){
+function drawLine(line, colour){
     for(var i = 0; i < line.length; i++){
         var x = line[i].x;
         var y = line[i].y;
         var cell = document.getElementById(`${x} ${y}`); 
         if(cell) {
-            cell.style.backgroundColor = 'red';
+            cell.style.backgroundColor = colour;
         } else {
             console.log(`Missing cell at ${x}-${y}`);
         }
@@ -168,8 +187,18 @@ var layer2 = new Layer(1, []);
 var layer3 = new Layer(2, []);
 var layers = [layer1, layer2, layer3]
 
-for (var x = 0; x < 300; x += 30) {
-    var y = Math.floor(Math.random() * resolution) + 1
-    var cube = new Object(y, x, 0, 'lightgrey', cubeSprite);
-    addObject(cube);
+if(type == 'line'){
+    for (var x = 0; x < 300; x += 30) {
+        var y = Math.floor(Math.random() * resolution) + 1
+        var cube = new Object(y, x, 0, 'lightgrey', cubeSprite);
+        addObject(cube);
+    }
+} else if(type == 'multiline'){
+    for(var l = 0; l < 3; l++){
+        for (var x = 0; x < 300; x += 30) {
+            var y = Math.floor(Math.random() * (resolution / (l + 1))) + 1
+            var cube = new Object(y, x, l, colors[l], cubeSprite);
+            addObject(cube);
+        }
+    }
 }
