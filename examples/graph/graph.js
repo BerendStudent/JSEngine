@@ -5,7 +5,7 @@ totalObjectArray.push()
 var circleSprite = [[0,1,0],[1,1,1],[0,1,0]];
 var cubeSprite = [];
 var rectangleSprite = [[1,1], [1,1], [1,1]];
-var type = 'multiline';
+var type = 'line';
 colors = ['lightgrey', 'blue', 'green']
 line_colors = ['red', 'white', 'purple']
 
@@ -75,7 +75,7 @@ function renderFrame() {
             var x1 = totalObjectArray[i + 1].x + Math.floor(totalObjectArray[i + 1].objSize.sizeX / 2);
             var y1 = totalObjectArray[i + 1].y + Math.floor(totalObjectArray[i + 1].objSize.sizeY / 2);
             var line = getLineCoordinates(x0, y0, x1, y1);
-            drawLine(line);
+            drawLine(line, 'red');
         }
     } else if(type == 'multiline'){
         console.log(layers);
