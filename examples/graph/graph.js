@@ -66,10 +66,10 @@ function renderFrame() {
         }
     }
     for(var i = 0; i < (totalObjectArray.length - 1); i++){
-        var x0 = totalObjectArray[i].x;
-        var y0 = totalObjectArray[i].y;
-        var x1 = totalObjectArray[i + 1].x;
-        var y1 = totalObjectArray[i + 1].y;
+        var x0 = totalObjectArray[i].x + Math.floor(totalObjectArray[i].objSize.sizeX / 2);
+        var y0 = totalObjectArray[i].y + Math.floor(totalObjectArray[i].objSize.sizeY / 2);
+        var x1 = totalObjectArray[i + 1].x + Math.floor(totalObjectArray[i + 1].objSize.sizeX / 2);
+        var y1 = totalObjectArray[i + 1].y + Math.floor(totalObjectArray[i + 1].objSize.sizeY / 2);
         var line = getLineCoordinates(x0, y0, x1, y1);
         drawLine(line);
     }
