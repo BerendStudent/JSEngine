@@ -1,0 +1,21 @@
+body {
+    text-align: center;
+    background-color: lightgrey;
+}
+
+table {
+    margin-left: auto;
+    margin-right: auto;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+
+img {
+    display: block;
+}
+
+td {
+    width:10px;
+    height:10px;
+}
