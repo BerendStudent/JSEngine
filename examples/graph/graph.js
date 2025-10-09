@@ -1,5 +1,5 @@
 class Graph {
-    constructor(canvasId, resolution = 500, type = 'line') {
+    constructor(canvasId, resolution = 500, type = 'line', options = {}) {
         this.canvas = document.getElementById(canvasId);
         this.ctx = this.canvas.getContext('2d');
         this.ctx.imageSmoothingEnabled = false;
@@ -7,13 +7,19 @@ class Graph {
         this.type = type;
         this.layers = [new Layer(0, []), new Layer(1, []), new Layer(2, [])];
         this.totalObjectArray = [];
-
-        // Default sprites & colors
         this.cubeSprite = Array.from({length: 10}, () => Array(10).fill(1));
         this.circleSprite = [[0,1,0],[1,1,1],[0,1,0]];
         this.rectangleSprite = [[1,1],[1,1],[1,1]];
         this.colors = ['lightgrey', 'blue', 'green'];
         this.line_colors = ['red', 'white', 'purple'];
+        this.options = Object.assign({
+            title: '',
+            xLabel: '',
+            yLabel: '',
+            showPointLabels: false,
+            font: "12px 'Press Start 2P'",
+            fontColor: 'black'
+        }, options);
     }
 
     createFrame(data) {
@@ -24,7 +30,9 @@ class Graph {
     }
 
     normalizeData(data, canvasSize, paddingRatio = 0.9) {
-        if (data.length === 0) return data;
+        if (data.length === 0) {
+            return data;
+        }
 
         let xs = data.map(p => p[0]);
         let ys = data.map(p => p[1]);
@@ -45,19 +53,27 @@ class Graph {
     }
 
     renderFrame() {
-        // Clear canvas
         this.ctx.clearRect(0, 0, this.resolution, this.resolution);
+        switch (this.type) {
+            case 'line':
+                this.renderObjects();
+                this.renderLines();
+                break;
+            case 'scatter':
+                this.renderObjects();
+                break;
+            case 'bar':
+                this.renderBars();
+                break;
+        }
+        this.renderLabels();
+    }
 
-        // Draw objects
+    renderObjects() {
         for (let layer of this.layers) {
             for (let obj of layer.objectArray) {
                 this.drawObject(obj.objSize);
             }
-        }
-
-        // Draw lines if type is 'line'
-        if (this.type === 'line') {
-            this.renderLines();
         }
     }
 
@@ -89,6 +105,18 @@ class Graph {
                 let line = this.getLineCoordinates(x0, y0, x1, y1);
                 this.drawLine(line, color);
             }
+        }
+    }
+
+    renderBars() {
+        const barWidth = this.resolution / this.totalObjectArray.length * 0.8;
+        for (let i = 0; i < this.totalObjectArray.length; i++) {
+            const obj = this.totalObjectArray[i];
+            const height = this.resolution - obj.y;
+            const x = obj.x - barWidth / 2;
+            const y = this.resolution - height;
+            this.ctx.fillStyle = obj.color;
+            this.ctx.fillRect(x, y, barWidth, height);
         }
     }
 
@@ -134,7 +162,7 @@ class Graph {
 
     loadData(data) {
         for (let i = 0; i < data.length; i++) {
-            let cube = new Object(
+            let cube = new Graph_Object(
                 data[i][0],
                 data[i][1],
                 0,
@@ -149,6 +177,44 @@ class Graph {
         this.layers[object.z].objectArray.push(object);
         this.totalObjectArray.push(object);
     }
+
+    renderLabels() {
+        const ctx = this.ctx;
+        ctx.save();
+        ctx.font = this.options.font;
+        ctx.fillStyle = this.options.fontColor;
+        ctx.textAlign = 'center';
+
+        // Title
+        if (this.options.title) {
+            ctx.fillText(this.options.title, this.resolution / 2, 20);
+        }
+
+        // X-axis label
+        if (this.options.xLabel) {
+            ctx.fillText(this.options.xLabel, this.resolution / 2, this.resolution - 10);
+        }
+
+        // Y-axis label (rotated)
+        if (this.options.yLabel) {
+            ctx.save();
+            ctx.translate(15, this.resolution / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText(this.options.yLabel, 0, 0);
+            ctx.restore();
+        }
+
+        // Point labels
+        if (this.options.showPointLabels) {
+            ctx.font = "10px 'Press Start 2P'";
+            ctx.textAlign = 'left';
+            for (let obj of this.totalObjectArray) {
+                ctx.fillText(`(${Math.round(obj.x)}, ${Math.round(obj.y)})`, obj.x + 10, obj.y - 5);
+            }
+        }
+
+        ctx.restore();
+    }
 }
 
 class Layer {
@@ -158,7 +224,7 @@ class Layer {
     }
 }
 
-class Object {
+class Graph_Object {
     constructor(x, y, z, color, sprite) {
         this.x = x;
         this.y = y;
