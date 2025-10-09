@@ -21,7 +21,8 @@ class Graph {
             font: "12px 'Press Start 2P'",
             fontColor: 'black',
             axisColor: 'black',
-            tickCount: 5
+            tickCount: 5,
+            padding: 40
         }, options);
     }
 
@@ -33,32 +34,48 @@ class Graph {
         this.renderFrame();
     }
 
-    normalizeData(data, canvasSize, paddingRatio = 0.9) {
-        if (data.length === 0) {
+    normalizeData(data) {
+        if (data.length === 0){
             return data;
         }
+        
+        const { padding } = this.options;
+        const xs = data.map(p => p[0]);
+        const ys = data.map(p => p[1]);
 
-        let xs = data.map(p => p[0]);
-        let ys = data.map(p => p[1]);
         this.minX = Math.min(...xs);
         this.maxX = Math.max(...xs);
         this.minY = Math.min(...ys);
         this.maxY = Math.max(...ys);
 
-        let width = this.maxX - this.minX || 1;
-        let height = this.maxY - this.minY || 1;
-        let scale = paddingRatio * canvasSize / Math.max(width, height);
-        let offsetX = (canvasSize - width * scale) / 2;
-        let offsetY = (canvasSize - height * scale) / 2;
+        const xMargin = (this.maxX - this.minX) * 0.05;
+        const yMargin = (this.maxY - this.minY) * 0.05;
 
-        return data.map(([x, y]) => [
-            (x - this.minX) * scale + offsetX,
-            (y - this.minY) * scale + offsetY
-        ]);
+        this.minX -= xMargin;
+        this.maxX += xMargin;
+        this.minY -= yMargin;
+        this.maxY += yMargin;
+
+        const width = this.maxX - this.minX || 1;
+        const height = this.maxY - this.minY || 1;
+
+        this.graphWidth = this.resolution - padding * 2;
+        this.graphHeight = this.resolution - padding * 2;
+
+        return data.map(([x, y]) => {
+            const nx = padding + ((x - this.minX) / width) * this.graphWidth;
+            const ny = (this.resolution - padding) - ((y - this.minY) / height) * this.graphHeight;
+
+            return [nx, ny];
+        });
     }
+
+
 
     renderFrame() {
         this.ctx.clearRect(0, 0, this.resolution, this.resolution);
+        this.renderAxes();
+
         switch (this.type) {
             case 'line':
                 this.renderObjects();
@@ -72,23 +89,19 @@ class Graph {
                 break;
         }
 
-        this.renderAxes();
         this.renderLabels();
     }
 
     renderAxes() {
         const ctx = this.ctx;
-        const { axisColor, tickCount, font, fontColor } = this.options;
+        const { axisColor, tickCount, font, fontColor, padding } = this.options;
         ctx.save();
         ctx.strokeStyle = axisColor;
         ctx.fillStyle = fontColor;
         ctx.font = font;
         ctx.lineWidth = 1;
 
-        const padding = 40;
-        const graphWidth = this.resolution - padding * 2;
-        const graphHeight = this.resolution - padding * 2;
-
+        // Draw axes
         ctx.beginPath();
         ctx.moveTo(padding, this.resolution - padding);
         ctx.lineTo(this.resolution - padding, this.resolution - padding); 
@@ -96,11 +109,11 @@ class Graph {
         ctx.lineTo(padding, this.resolution - padding); 
         ctx.stroke();
 
+        // X ticks
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
-
         for (let i = 0; i <= tickCount; i++) {
-            let x = padding + (i / tickCount) * graphWidth;
+            let x = padding + (i / tickCount) * this.graphWidth;
             let value = this.minX + (i / tickCount) * (this.maxX - this.minX);
             ctx.beginPath();
             ctx.moveTo(x, this.resolution - padding);
@@ -109,10 +122,11 @@ class Graph {
             ctx.fillText(value.toFixed(1), x, this.resolution - padding + 10);
         }
 
+        // Y ticks
         ctx.textAlign = 'right';
         ctx.textBaseline = 'middle';
         for (let i = 0; i <= tickCount; i++) {
-            let y = this.resolution - padding - (i / tickCount) * graphHeight;
+            let y = this.resolution - padding - (i / tickCount) * this.graphHeight;
             let value = this.minY + (i / tickCount) * (this.maxY - this.minY);
             ctx.beginPath();
             ctx.moveTo(padding - 5, y);
@@ -164,22 +178,21 @@ class Graph {
     }
 
     renderBars() {
-    const ctx = this.ctx;
-    const padding = 40;
-    const graphHeight = this.resolution - padding * 2;
-    const barWidth = (this.resolution - padding * 2) / this.totalObjectArray.length * 0.8;
+        const { padding } = this.options;
+        const barWidth = this.graphWidth / this.totalObjectArray.length * 0.8;
 
-    for (let i = 0; i < this.totalObjectArray.length; i++) {
-        const obj = this.totalObjectArray[i];
-        const normalizedY = (obj.y - padding) / graphHeight;
-        const height = (1 - normalizedY) * graphHeight;
-        const x = obj.x - barWidth / 2;
-        const y = this.resolution - padding - height;
-        ctx.fillStyle = obj.color;
-        ctx.fillRect(x, y, barWidth, height);
+        for (let i = 0; i < this.totalObjectArray.length; i++) {
+            const obj = this.totalObjectArray[i];
+            const baseY = this.resolution - padding; // X-axis position
+            const height = baseY - obj.y; // upward height
+
+            const x = obj.x - barWidth / 2;
+            const y = obj.y;
+
+            this.ctx.fillStyle = obj.color;
+            this.ctx.fillRect(x, y, barWidth, height);
+        }
     }
-}
-
 
     getLineCoordinates(x0, y0, x1, y1) {
         const coordinates = [];
@@ -230,6 +243,7 @@ class Graph {
 
     renderLabels() {
         const ctx = this.ctx;
+        const { padding } = this.options;
         ctx.save();
         ctx.font = this.options.font;
         ctx.fillStyle = this.options.fontColor;
