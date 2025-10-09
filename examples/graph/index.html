@@ -1,21 +1,20 @@
 <!DOCTYPE html>
-<head>
-    <script src="graph.js"></script>
-    <link rel= "stylesheet" type= "text/css" href= "static/style.css">
-    <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-</head>
-<body>
-    <main>
-        <table border="0" cellspacing="0" cellpadding="0">
-            <tbody id="Frame">
-                <!-- LEAVE EMPTY!!!!! FILLED BY SCRIPT-->
-            </tbody>
-        </table>
-    </main>
-    <script>
-        window.onload = function () {
-        createFrame(300);
-        };
-    </script>
-</body>
+<html>
+    <head>
+        <script src="graph.js"></script>
+        <link rel="stylesheet" type="text/css" href="static/style.css">
+        <meta charset="UTF-8">
+        <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    </head>
+    <body>
+        <main>
+            <canvas id="Frame" width="500" height="500" style="background:black;"></canvas>
+        </main>
+        <script>
+            var datapoints = [[10,5], [20,5], [30, 10]];
+            window.onload = function() {
+                createFrame(500, datapoints);
+            };
+        </script>
+    </body>
+</html>

@@ -1,15 +1,11 @@
-var resolution = 300;
-var size;
+var resolution = 500;
 var totalObjectArray = [];
-totalObjectArray.push()
 var circleSprite = [[0,1,0],[1,1,1],[0,1,0]];
 var cubeSprite = [];
 var rectangleSprite = [[1,1], [1,1], [1,1]];
 var type = 'line';
-colors = ['lightgrey', 'blue', 'green']
-line_colors = ['red', 'white', 'purple']
-
-
+var colors = ['lightgrey', 'blue', 'green'];
+var line_colors = ['red', 'white', 'purple'];
 
 for (var x = 0; x < 10; x++) {
     cubeSprite.push([]);
@@ -18,91 +14,88 @@ for (var x = 0; x < 10; x++) {
     }
 }
 
+var ctx;
+var canvas;
+var layers = [];
 
-function createFrame(newResolution) {
+function createFrame(newResolution, data) {
     resolution = newResolution;
-    var frameBody = document.getElementById('Frame');
-    frameBody.innerHTML = "";
-    for(var x = 0; x < resolution; x++){
-        var row = document.createElement('tr');
-        for(var y = 0; y < resolution; y++){
-            var pixel = document.createElement('td');
-            pixel.style.width = "1px";
-            pixel.style.height = "1px";
-            pixel.style.backgroundColor = "black";
-            pixel.setAttribute("id", `${x} ${y}`);
-            row.appendChild(pixel);
-        }
-        frameBody.appendChild(row);
-    }
+    totalObjectArray = [];
+    layers = [new Layer(0, []), new Layer(1, []), new Layer(2, [])];
+    canvas = document.getElementById('Frame');
+    ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+
+    const scaledData = normalizeData(data, resolution, 0.9); // scale + center with 90% padding
+    loadData(scaledData);
     renderFrame();
 }
 
-
-function renderFrame() {
-    for(var x = 0; x < resolution; x++){
-        for(var y = 0; y < resolution; y++){
-            document.getElementById(`${x} ${y}`).style.backgroundColor = "black";
-        }
+function normalizeData(data, canvasSize, paddingRatio = 0.9) {
+    if (data.length === 0) {
+        return data;
     }
 
-    for(var l = 0; l < layers.length; l++){
+    let xs = data.map(p => p[0]);
+    let ys = data.map(p => p[1]);
+    let minX = Math.min(...xs);
+    let maxX = Math.max(...xs);
+    let minY = Math.min(...ys);
+    let maxY = Math.max(...ys);
+    let width = maxX - minX || 1; // width || 1 sets default value 
+    let height = maxY - minY || 1;
+    let scale = paddingRatio * canvasSize / Math.max(width, height);
+    let offsetX = (canvasSize - width * scale) / 2;
+    let offsetY = (canvasSize - height * scale) / 2;
+
+    return data.map(([x, y]) => [
+        (x - minX) * scale + offsetX,
+        (y - minY) * scale + offsetY
+    ]);
+}
+
+function renderFrame() {
+    ctx.clearRect(0, 0, resolution, resolution);
+
+    for (var l = 0; l < layers.length; l++) {
         var layer = layers[l];
-        for(var i = 0; i < layer.objectArray.length; i++){
+        for (var i = 0; i < layer.objectArray.length; i++) {
             var obj = layer.objectArray[i].objSize;
             var colour = obj.color;
-            for(var sprite_x = 0; sprite_x < obj.sprite.length; sprite_x++){
-                for(var sprite_y = 0; sprite_y < obj.sprite[0].length; sprite_y++){
-                    if(obj.sprite[sprite_x][sprite_y]) {
-                        var xPos = sprite_x + obj.x;
-                        var yPos = sprite_y + obj.y;
 
-                        if(xPos >= 0 && xPos < resolution && yPos >= 0 && yPos < resolution){
-                            var cell = document.getElementById(`${xPos} ${yPos}`);
-                            if(cell) {
-                                cell.style.backgroundColor = colour;
-                            }
+            ctx.fillStyle = colour;
+            for (var sx = 0; sx < obj.sprite.length; sx++) {
+                for (var sy = 0; sy < obj.sprite[0].length; sy++) {
+                    if (obj.sprite[sx][sy]) {
+                        var xPos = obj.x + sx;
+                        var yPos = obj.y + sy;
+                        if (xPos >= 0 && xPos < resolution && yPos >= 0 && yPos < resolution) {
+                            ctx.fillRect(xPos, yPos, 1, 1);
                         }
                     }
                 }
             }
         }
     }
-    if(type == 'line'){
-        for(let i = 0; i < (totalObjectArray.length - 1); i++){
-            var x0 = totalObjectArray[i].x + Math.floor(totalObjectArray[i].objSize.sizeX / 2);
-            var y0 = totalObjectArray[i].y + Math.floor(totalObjectArray[i].objSize.sizeY / 2);
-            var x1 = totalObjectArray[i + 1].x + Math.floor(totalObjectArray[i + 1].objSize.sizeX / 2);
-            var y1 = totalObjectArray[i + 1].y + Math.floor(totalObjectArray[i + 1].objSize.sizeY / 2);
-            var line = getLineCoordinates(x0, y0, x1, y1);
-            drawLine(line, 'red');
-        }
-    } else if(type == 'multiline'){
-        console.log(layers);
-        for(let l = 0; l < layers.length; l++){
-            layer = layers[l];
-            console.log(layer);
-            for(let i = 0; i < (layer.objectArray.length - 1); i++){
-                var x0 = layer.objectArray[i].x + Math.floor(layer.objectArray[i].objSize.sizeX / 2);
-                var y0 = layer.objectArray[i].y + Math.floor(layer.objectArray[i].objSize.sizeY / 2);
-                var x1 = layer.objectArray[i + 1].x + Math.floor(layer.objectArray[i + 1].objSize.sizeX / 2);
-                var y1 = layer.objectArray[i + 1].y + Math.floor(layer.objectArray[i + 1].objSize.sizeY / 2);
+
+    if (type === 'line') {
+        for (let l = 0; l < layers.length; l++) {
+            let layer = layers[l];
+            ctx.strokeStyle = line_colors[l] || 'white';
+            for (let i = 0; i < layer.objectArray.length - 1; i++) { // Rounding here to avoid floating point errors
+                var x0 = Math.round(layer.objectArray[i].x + layer.objectArray[i].sizeX / 2);
+                var y0 = Math.round(layer.objectArray[i].y + layer.objectArray[i].sizeY / 2);
+                var x1 = Math.round(layer.objectArray[i + 1].x + layer.objectArray[i + 1].sizeX / 2);
+                var y1 = Math.round(layer.objectArray[i + 1].y + layer.objectArray[i + 1].sizeY / 2);
                 var line = getLineCoordinates(x0, y0, x1, y1);
-                drawLine(line, line_colors[l]);
+                drawLine(line, ctx.strokeStyle);
             }
         }
     }
 }
 
-
-var i = 0;
-var xdir = 0;
-var ydir = 1;
-var moving_x_dir = 0;
-var moving_y_dir = 1;
-
 class Layer {
-    constructor(z, objectArray){
+    constructor(z, objectArray) {
         this.z = z;
         this.objectArray = objectArray;
     }
@@ -131,26 +124,26 @@ class Object {
     }
 }
 
-function addObject(object){
-    var layer = layers[object.z]
-    layer.objectArray.push(object)
-    totalObjectArray.push(object)
+function addObject(object) {
+    var layer = layers[object.z];
+    layer.objectArray.push(object);
+    totalObjectArray.push(object);
 }
 
-function getLineCoordinates(x0, y0, x1, y1) { // with https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
+function getLineCoordinates(x0, y0, x1, y1) {
     const coordinates = [];
-
     let dx = Math.abs(x1 - x0);
     let dy = Math.abs(y1 - y0);
     let sx = (x0 < x1) ? 1 : -1;
     let sy = (y0 < y1) ? 1 : -1;
     let err = dx - dy;
 
+    let safety = 0; // checks for an infinite loop
     while (true) {
         coordinates.push({ x: x0, y: y0 });
-
-        if (x0 === x1 && y0 === y1) break;
-
+        if (x0 === x1 && y0 === y1) {
+            break;
+        }
         let e2 = 2 * err;
         if (e2 > -dy) {
             err -= dy;
@@ -160,45 +153,34 @@ function getLineCoordinates(x0, y0, x1, y1) { // with https://en.wikipedia.org/w
             err += dx;
             y0 += sy;
         }
+        if (safety++ > 5000) {
+            break;
+        }
     }
 
     return coordinates;
 }
 
-var line = getLineCoordinates(2, 3, 7, 6);
-
-function drawLine(line, colour){
-    for(var i = 0; i < line.length; i++){
+function drawLine(line, colour) {
+    ctx.fillStyle = colour;
+    for (var i = 0; i < line.length; i++) {
         var x = line[i].x;
         var y = line[i].y;
-        var cell = document.getElementById(`${x} ${y}`); 
-        if(cell) {
-            cell.style.backgroundColor = colour;
-        } else {
-            console.log(`Missing cell at ${x}-${y}`);
+        if (x >= 0 && y >= 0 && x < resolution && y < resolution) {
+            ctx.fillRect(x, y, 1, 1);
         }
     }
 }
 
-
-
-var layer1 = new Layer(0, []);
-var layer2 = new Layer(1, []);
-var layer3 = new Layer(2, []);
-var layers = [layer1, layer2, layer3]
-
-if(type == 'line'){
-    for (var x = 0; x < 300; x += 30) {
-        var y = Math.floor(Math.random() * resolution) + 1
-        var cube = new Object(y, x, 0, 'lightgrey', cubeSprite);
+function loadData(data) {
+    for (var i = 0; i < data.length; i++) {
+        let cube = new Object(
+            data[i][0],
+            data[i][1],
+            0,
+            colors[i % colors.length],
+            cubeSprite
+        );
         addObject(cube);
-    }
-} else if(type == 'multiline'){
-    for(var l = 0; l < 3; l++){
-        for (var x = 0; x < 300; x += 30) {
-            var y = Math.floor(Math.random() * (resolution / (l + 1))) + 1
-            var cube = new Object(y, x, l, colors[l], cubeSprite);
-            addObject(cube);
-        }
     }
 }
