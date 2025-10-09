@@ -8,12 +8,19 @@
     </head>
     <body>
         <main>
-            <canvas id="Frame" width="500" height="500" style="background:black;"></canvas>
+            <canvas id="frame1" width="500" height="500" style="background:white;"></canvas>
+            <canvas id="frame2" width="500" height="500" style="background:white;"></canvas>
         </main>
         <script>
-            var datapoints = [[10,5], [20,5], [30, 10]];
             window.onload = function() {
-                createFrame(500, datapoints);
+                let datapoints1 = [[10,5], [20,5], [30, 10]];
+                let datapoints2 = [[5,10], [15,15], [25,5]];
+
+                let graph1 = new Graph('frame1', 500, 'line');
+                graph1.createFrame(datapoints1);
+
+                let graph2 = new Graph('frame2', 500, 'line');
+                graph2.createFrame(datapoints2);
             };
         </script>
     </body>
