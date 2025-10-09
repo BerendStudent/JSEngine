@@ -1,36 +1,45 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <script src="graph.js"></script>
-        <link rel="stylesheet" type="text/css" href="static/style.css">
-        <meta charset="UTF-8">
-        <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    </head>
-    <body>
-        <main>
-            <canvas id="frame1" width="500" height="500" style="background:white;"></canvas>
-            <canvas id="frame2" width="500" height="500" style="background:white;"></canvas>
-            <canvas id="frame3" width="500" height="500" style="background:white;"></canvas>
-        </main>
-        <script>
-        window.onload = function() {
-            let line_data = [[10,5], [20,5], [30,10]];
-            let scatter_data = [[5,10], [15,15], [25,5]];
-            let bar_data = [[10,50], [20,100], [30,70]];
-            let line_graph = new Graph('frame1', 500, 'line', {
+<head>
+    <script src="graph.js"></script>
+    <link rel="stylesheet" type="text/css" href="static/style.css">
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <main>
+        <canvas id="frame1" width="500" height="500" style="background:white;"></canvas>
+        <canvas id="frame2" width="500" height="500" style="background:white;"></canvas>
+        <canvas id="frame3" width="500" height="500" style="background:white;"></canvas>
+        <canvas id="frame4" width="500" height="500" style="background:white;"></canvas>
+    </main>
+    <script>
+    window.onload = function() {
+        let line_data = [[10,5], [20,5], [30,10]];
+        let line_graph = new Graph('frame1', 500, 'line', {
             title: "Sales Over Time",
             xLabel: "Month",
             yLabel: "Revenue",
             showPointLabels: true,
             font: "10px Arial",
             fontColor: "black"
-            });
-            line_graph.createFrame(line_data);
-            let scatter_graph = new Graph('frame2', 500, 'scatter');
-            scatter_graph.createFrame(scatter_data);
-            let bar_graph = new Graph('frame3', 500, 'bar');
-            bar_graph.createFrame(bar_data);
-        };
-        </script>
-    </body>
+        });
+        line_graph.createFrame(line_data);
+        let scatter_data = [[5,10], [15,15], [25,5]];
+        let scatter_graph = new Graph('frame2', 500, 'scatter');
+        scatter_graph.createFrame(scatter_data);
+        let bar_data = [[10,50], [20,100], [30,70]];
+        let bar_graph = new Graph('frame3', 500, 'bar');
+        bar_graph.createFrame(bar_data);
+        let pie_data = [10, 20, 30, 40];
+        let pie_graph = new Graph('frame4', 500, 'pie', {
+            title: "Revenue Breakdown",
+            showPointLabels: true,
+            font: "12px Arial",
+            fontColor: "black"
+        });
+        pie_graph.createFrame(pie_data);
+    };
+    </script>
+</body>
 </html>

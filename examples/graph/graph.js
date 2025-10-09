@@ -1,5 +1,5 @@
 class Graph {
-    constructor(canvasId, resolution = 500, type = 'line', options = {}) {
+constructor(canvasId, resolution = 500, type = 'line', options = {}) {
         this.canvas = document.getElementById(canvasId);
         this.ctx = this.canvas.getContext('2d');
         this.ctx.imageSmoothingEnabled = false;
@@ -8,10 +8,10 @@ class Graph {
         this.layers = [new Layer(0, []), new Layer(1, []), new Layer(2, [])];
         this.totalObjectArray = [];
         this.rawData = [];
-        this.cubeSprite = Array.from({length: 10}, () => Array(10).fill(1));
-        this.circleSprite = [[0,1,0],[1,1,1],[0,1,0]];
-        this.rectangleSprite = [[1,1],[1,1],[1,1]];
-        this.colors = ['lightgrey', 'blue', 'green'];
+        this.cubeSprite = Array.from({ length: 10 }, () => Array(10).fill(1));
+        this.circleSprite = [[0, 1, 0], [1, 1, 1], [0, 1, 0]];
+        this.rectangleSprite = [[1, 1], [1, 1], [1, 1]];
+        this.colors = ['lightgrey', 'blue', 'green', 'red', 'orange', 'purple', 'yellow'];
         this.line_colors = ['red', 'white', 'purple'];
 
         this.options = Object.assign({
@@ -31,8 +31,14 @@ class Graph {
     createFrame(data) {
         this.totalObjectArray = [];
         this.rawData = data;
-        const scaledData = this.normalizeData(data, this.resolution);
-        this.loadData(scaledData);
+
+        if (this.type === 'pie') {
+            this.loadPieData(data);
+        } else {
+            const scaledData = this.normalizeData(data, this.resolution);
+            this.loadData(scaledData);
+        }
+
         this.renderFrame();
     }
 
@@ -49,7 +55,6 @@ class Graph {
         this.minY = Math.min(...ys);
         this.maxY = Math.max(...ys);
 
-        // Add 10% margin on both axes
         const xMargin = (this.maxX - this.minX) * 0.1;
         const yMargin = (this.maxY - this.minY) * 0.1;
         this.minX -= xMargin;
@@ -72,23 +77,29 @@ class Graph {
 
     renderFrame() {
         this.ctx.clearRect(0, 0, this.resolution, this.resolution);
-        this.renderAxes();
 
-        switch (this.type) {
-            case 'line':
-                this.renderObjects();
-                this.renderLines();
-                break;
-            case 'scatter':
-                this.renderObjects();
-                break;
-            case 'bar':
-                this.renderBars();
-                break;
+        if (this.type === 'pie') {
+            this.renderPie();
+        } else {
+            this.renderAxes();
+
+            switch (this.type) {
+                case 'line':
+                    this.renderObjects();
+                    this.renderLines();
+                    break;
+                case 'scatter':
+                    this.renderObjects();
+                    break;
+                case 'bar':
+                    this.renderBars();
+                    break;
+            }
+
+            this.renderLabels();
         }
-
-        this.renderLabels();
     }
+
 
     renderAxes() {
         const ctx = this.ctx;
@@ -267,6 +278,62 @@ class Graph {
         }
 
         ctx.restore();
+    }
+        loadPieData(data) {
+        const total = data.reduce((sum, val) => sum + val, 0);
+        let startAngle = 0;
+
+        for (let i = 0; i < data.length; i++) {
+            const value = data[i];
+            const sliceAngle = (value / total) * 2 * Math.PI;
+
+            const slice = {
+                value: value,
+                startAngle: startAngle,
+                endAngle: startAngle + sliceAngle,
+                color: this.colors[i % this.colors.length]
+            };
+
+            this.totalObjectArray.push(slice);
+            startAngle += sliceAngle;
+        }
+    }
+
+    renderPie() {
+        const ctx = this.ctx;
+        const radius = (this.resolution - this.options.padding * 2) / 2;
+        const cx = this.resolution / 2;
+        const cy = this.resolution / 2;
+
+        for (const slice of this.totalObjectArray) {
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, radius, slice.startAngle, slice.endAngle);
+            ctx.closePath();
+            ctx.fillStyle = slice.color;
+            ctx.fill();
+        }
+
+        if (this.options.showPointLabels) {
+            ctx.fillStyle = this.options.fontColor;
+            ctx.font = this.options.font;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            for (const slice of this.totalObjectArray) {
+                const midAngle = (slice.startAngle + slice.endAngle) / 2;
+                const labelX = cx + Math.cos(midAngle) * radius * 0.6;
+                const labelY = cy + Math.sin(midAngle) * radius * 0.6;
+                ctx.fillText(slice.value, labelX, labelY);
+            }
+        }
+
+        if (this.options.title) {
+            ctx.fillStyle = this.options.fontColor;
+            ctx.font = this.options.font;
+            ctx.textAlign = 'center';
+            ctx.fillText(this.options.title, cx, this.options.padding / 2);
+        }
     }
 }
 
