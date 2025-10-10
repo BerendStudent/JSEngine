@@ -34,6 +34,8 @@ constructor(canvasId, resolution = 500, type = 'line', options = {}) {
 
         if (this.type === 'pie') {
             this.loadPieData(data);
+        } else if (this.type === 'stackedBar') {
+            this.loadStackedBarData(data);
         } else {
             const scaledData = this.normalizeData(data, this.resolution);
             this.loadData(scaledData);
@@ -93,6 +95,9 @@ constructor(canvasId, resolution = 500, type = 'line', options = {}) {
                     break;
                 case 'bar':
                     this.renderBars();
+                    break;
+                case 'stackedBar':
+                    this.renderStackedBars();
                     break;
             }
 
@@ -209,6 +214,37 @@ constructor(canvasId, resolution = 500, type = 'line', options = {}) {
             this.ctx.fillRect(x, y, barWidth, height);
         }
 
+    }
+
+        loadStackedBarData(data) {
+        const scaledData = data.map(([x, values]) => {
+            const total = values.reduce((sum, v) => sum + v, 0);
+            const scaledY = this.normalizeData([[x, total]], this.resolution)[0][1];
+            return { x: x, values: values, scaledY: scaledY };
+        });
+        this.stackedData = scaledData;
+    }
+
+    renderStackedBars() {
+        const { padding } = this.options;
+        const barWidth = this.graphWidth / this.stackedData.length * 0.8;
+
+        for (let i = 0; i < this.stackedData.length; i++) {
+            const bar = this.stackedData[i];
+            let cumulativeHeight = this.resolution - padding;
+
+            for (let j = 0; j < bar.values.length; j++) {
+                const value = bar.values[j];
+                const height = (value / bar.values.reduce((sum, v) => sum + v, 0)) * (this.resolution - padding*2);
+                const x = padding + i * (this.graphWidth / this.stackedData.length) + (this.graphWidth / this.stackedData.length - barWidth)/2;
+                const y = cumulativeHeight - height;
+
+                this.ctx.fillStyle = this.colors[j % this.colors.length];
+                this.ctx.fillRect(x, y, barWidth, height);
+
+                cumulativeHeight -= height;
+            }
+        }
     }
 
     getLineCoordinates(x0, y0, x1, y1) {

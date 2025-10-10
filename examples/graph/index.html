@@ -12,6 +12,7 @@
         <canvas id="frame2" width="500" height="500" style="background:white;"></canvas>
         <canvas id="frame3" width="500" height="500" style="background:white;"></canvas>
         <canvas id="frame4" width="500" height="500" style="background:white;"></canvas>
+        <canvas id="frame5" width="500" height="500" style="background:white;"></canvas>
     </main>
     <script>
     window.onload = function() {
@@ -39,6 +40,21 @@
             fontColor: "black"
         });
         pie_graph.createFrame(pie_data);
+        let stacked_bar_data = [
+        [10, [5, 3, 2]],
+        [20, [10, 5, 0]],
+        [30, [7, 4, 3]]
+    ];
+
+    let stackedBarGraph = new Graph('frame5', 500, 'stackedBar', {
+        title: "Stacked Sales",
+        xLabel: "Month",
+        yLabel: "Revenue",
+        font: "12px Arial",
+        fontColor: "black"
+    });
+
+    stackedBarGraph.createFrame(stacked_bar_data);
     };
     </script>
 </body>
