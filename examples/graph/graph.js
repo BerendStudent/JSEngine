@@ -1,5 +1,5 @@
 class Graph {
-constructor(canvasId, resolution = 500, type = 'line', options = {}) {
+    constructor(canvasId, resolution = 500, type = 'line', options = {}) {
         this.canvas = document.getElementById(canvasId);
         this.ctx = this.canvas.getContext('2d');
         this.ctx.imageSmoothingEnabled = false;
@@ -115,7 +115,6 @@ constructor(canvasId, resolution = 500, type = 'line', options = {}) {
         ctx.font = font;
         ctx.lineWidth = 1;
 
-        // Draw axes
         ctx.beginPath();
         ctx.moveTo(padding, this.resolution - padding);
         ctx.lineTo(this.resolution - padding, this.resolution - padding);
@@ -123,9 +122,7 @@ constructor(canvasId, resolution = 500, type = 'line', options = {}) {
         ctx.lineTo(padding, this.resolution - padding);
         ctx.stroke();
 
-        // Grid + ticks
         for (let i = 0; i <= tickCount; i++) {
-            // X-axis
             const x = padding + (i / tickCount) * this.graphWidth;
             const xVal = this.minX + (i / tickCount) * (this.maxX - this.minX);
             ctx.textAlign = 'center';
@@ -141,7 +138,6 @@ constructor(canvasId, resolution = 500, type = 'line', options = {}) {
                 ctx.strokeStyle = axisColor;
             }
 
-            // Y-axis
             const y = this.resolution - padding - (i / tickCount) * this.graphHeight;
             const yVal = this.minY + (i / tickCount) * (this.maxY - this.minY);
             ctx.textAlign = 'right';
